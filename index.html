@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Copinha - Placar e Classificação</title>
+  <title>Copinha - Jogos de Ida</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -43,7 +43,7 @@
   </style>
 </head>
 <body>
-  <h1>Copinha - Placar dos Jogos</h1>
+  <h1>Copinha - Jogos de Ida</h1>
   <table>
     <thead>
       <tr>
@@ -53,7 +53,7 @@
       </tr>
     </thead>
     <tbody id="tabela-jogos">
-      <!-- Jogos serão inseridos via JS -->
+      <!-- Jogos inseridos via JS -->
     </tbody>
   </table>
 
@@ -70,7 +70,7 @@
       </tr>
     </thead>
     <tbody id="tabela-classificacao">
-      <!-- Classificação será inserida via JS -->
+      <!-- Classificação via JS -->
     </tbody>
   </table>
 
@@ -80,13 +80,12 @@
       "Barcelona", "Liverpool", "Inter", "Atlético de Madrid"
     ];
 
-    // Gerar confrontos ida e volta
+    // Gerar apenas jogos de ida
     const jogos = [];
     let rodada = 1;
     for (let i = 0; i < times.length; i++) {
       for (let j = i + 1; j < times.length; j++) {
-        jogos.push({ rodada: rodada++, time1: times[i], time2: times[j] }); // ida
-        jogos.push({ rodada: rodada++, time1: times[j], time2: times[i] }); // volta
+        jogos.push({ rodada: rodada++, time1: times[i], time2: times[j] });
       }
     }
 
