@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Copinha - Placar e Classificação</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f2f2f2;
+    }
+
+    h1, h2 {
+      text-align: center;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: white;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+
+    input[type="number"] {
+      width: 50px;
+      text-align: center;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Copinha - Placar dos Jogos</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Rodada</th>
+        <th>Jogo</th>
+        <th>Placar</th>
+      </tr>
+    </thead>
+    <tbody id="tabela-jogos">
+      <!-- Jogos serão inseridos via JS -->
+    </tbody>
+  </table>
+
+  <button onclick="salvarPlacares()">Salvar Placares</button>
+
+  <h2>Classificação</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Time</th>
+        <th>Pontos</th>
+        <th>Gols Feitos</th>
+        <th>Gols Sofridos</th>
+      </tr>
+    </thead>
+    <tbody id="tabela-classificacao">
+      <!-- Classificação será inserida via JS -->
+    </tbody>
+  </table>
+
+  <script>
+    const times = [
+      "Real Madrid", "Arsenal", "Bayern", "Chelsea", "Manchester",
+      "Barcelona", "Liverpool", "Inter", "Atlético de Madrid"
+    ];
+
+    // Gerar confrontos ida e volta
+    const jogos = [];
+    let rodada = 1;
+    for (let i = 0; i < times.length; i++) {
+      for (let j = i + 1; j < times.length; j++) {
+        jogos.push({ rodada: rodada++, time1: times[i], time2: times[j] }); // ida
+        jogos.push({ rodada: rodada++, time1: times[j], time2: times[i] }); // volta
+      }
+    }
+
+    function gerarTabela() {
+      const tbody = document.getElementById("tabela-jogos");
+      tbody.innerHTML = "";
+
+      jogos.forEach((jogo, i) => {
+        const p1 = localStorage.getItem(`placar_${i}_1`) || "";
+        const p2 = localStorage.getItem(`placar_${i}_2`) || "";
+
+        const linha = document.createElement("tr");
+        linha.innerHTML = `
+          <td>${jogo.rodada}</td>
+          <td>${jogo.time1} vs ${jogo.time2}</td>
+          <td>
+            <input type="number" id="placar_${i}_1" value="${p1}" min="0"> x 
+            <input type="number" id="placar_${i}_2" value="${p2}" min="0">
+          </td>
+        `;
+        tbody.appendChild(linha);
+      });
+    }
+
+    function salvarPlacares() {
+      jogos.forEach((_, i) => {
+        const p1 = document.getElementById(`placar_${i}_1`).value;
+        const p2 = document.getElementById(`placar_${i}_2`).value;
+        localStorage.setItem(`placar_${i}_1`, p1);
+        localStorage.setItem(`placar_${i}_2`, p2);
+      });
+
+      atualizarClassificacao();
+      alert("Placares e classificação atualizados!");
+    }
+
+    function atualizarClassificacao() {
+      const estatisticas = {};
+      times.forEach(time => {
+        estatisticas[time] = { pontos: 0, golsFeitos: 0, golsSofridos: 0 };
+      });
+
+      jogos.forEach((jogo, i) => {
+        const p1str = localStorage.getItem(`placar_${i}_1`);
+        const p2str = localStorage.getItem(`placar_${i}_2`);
+
+        if (p1str === null || p2str === null || p1str === "" || p2str === "") {
+          return; // Ignora jogos sem placar
+        }
+
+        const p1 = parseInt(p1str);
+        const p2 = parseInt(p2str);
+
+        const time1 = jogo.time1;
+        const time2 = jogo.time2;
+
+        estatisticas[time1].golsFeitos += p1;
+        estatisticas[time1].golsSofridos += p2;
+        estatisticas[time2].golsFeitos += p2;
+        estatisticas[time2].golsSofridos += p1;
+
+        if (p1 > p2) {
+          estatisticas[time1].pontos += 3;
+        } else if (p2 > p1) {
+          estatisticas[time2].pontos += 3;
+        } else {
+          estatisticas[time1].pontos += 1;
+          estatisticas[time2].pontos += 1;
+        }
+      });
+
+      const tbody = document.getElementById("tabela-classificacao");
+      tbody.innerHTML = "";
+
+      const listaOrdenada = Object.entries(estatisticas).sort((a, b) => {
+        return b[1].pontos - a[1].pontos ||
+               (b[1].golsFeitos - b[1].golsSofridos) - (a[1].golsFeitos - a[1].golsSofridos);
+      });
+
+      listaOrdenada.forEach(([time, dados]) => {
+        const linha = document.createElement("tr");
+        linha.innerHTML = `
+          <td>${time}</td>
+          <td>${dados.pontos}</td>
+          <td>${dados.golsFeitos}</td>
+          <td>${dados.golsSofridos}</td>
+        `;
+        tbody.appendChild(linha);
+      });
+    }
+
+    gerarTabela();
+    atualizarClassificacao();
+  </script>
+</body>
+</html>
