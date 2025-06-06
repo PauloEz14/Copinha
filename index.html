@@ -54,9 +54,7 @@
           <th>Placar</th>
         </tr>
       </thead>
-      <tbody id="tabela-jogos">
-        <!-- Jogos inseridos via JS -->
-      </tbody>
+      <tbody id="tabela-jogos"></tbody>
     </table>
 
     <button onclick="salvarPlacares()">Salvar Placares</button>
@@ -71,9 +69,7 @@
           <th>Gols Sofridos</th>
         </tr>
       </thead>
-      <tbody id="tabela-classificacao">
-        <!-- Classificação via JS -->
-      </tbody>
+      <tbody id="tabela-classificacao"></tbody>
     </table>
 
     <script>
@@ -89,56 +85,76 @@
         "Atlético de Madrid",
       ];
 
-      const jogosPorRodada = [];
-      function gerarJogos() {
-        const numTimes = times.length;
-        const totalRodadas = numTimes - 1;
-        const rodadaTimes = [...times];
-
-        if (numTimes % 2 !== 0) rodadaTimes.push("Folga");
-
-        const n = rodadaTimes.length;
-
-        for (let rodada = 0; rodada < totalRodadas; rodada++) {
-          const jogosRodada = [];
-          for (let i = 0; i < n / 2; i++) {
-            const time1 = rodadaTimes[i];
-            const time2 = rodadaTimes[n - 1 - i];
-            if (time1 !== "Folga" && time2 !== "Folga") {
-              jogosRodada.push({ time1, time2 });
-            }
-          }
-          jogosPorRodada.push(jogosRodada);
-
-          // Rotaciona os times para próxima rodada (estilo round-robin)
-          const fixo = rodadaTimes[0];
-          rodadaTimes.splice(1, 0, rodadaTimes.pop());
-        }
-      }
+      const rodadas = [
+        [
+          ["Chelsea", "Inter"],
+          ["Bayern", "Liverpool"],
+          ["Arsenal", "Manchester"],
+          ["Real Madrid", "Atlético de Madrid"],
+          ["Chelsea", "Liverpool"],
+          ["Manchester", "Barcelona"],
+          ["Liverpool", "Atlético de Madrid"],
+          ["Barcelona", "Atlético de Madrid"],
+          ["Barcelona", "Liverpool"],
+        ],
+        [
+          ["Real Madrid", "Liverpool"],
+          ["Chelsea", "Barcelona"],
+          ["Bayern", "Atlético de Madrid"],
+          ["Manchester", "Inter"],
+          ["Inter", "Atlético de Madrid"],
+          ["Arsenal", "Atlético de Madrid"],
+          ["Real Madrid", "Bayern"],
+          ["Arsenal", "Bayern"],
+          ["Bayern", "Inter"],
+        ],
+        [
+          ["Barcelona", "Inter"],
+          ["Chelsea", "Atlético de Madrid"],
+          ["Real Madrid", "Arsenal"],
+          ["Bayern", "Manchester"],
+          ["Manchester", "Liverpool"],
+          ["Arsenal", "Barcelona"],
+          ["Real Madrid", "Manchester"],
+          ["Arsenal", "Liverpool"],
+          ["Real Madrid", "Chelsea"],
+        ],
+        [
+          ["Real Madrid", "Barcelona"],
+          ["Liverpool", "Inter"],
+          ["Bayern", "Chelsea"],
+          ["Manchester", "Atlético de Madrid"],
+          ["Real Madrid", "Inter"],
+          ["Chelsea", "Manchester"],
+          ["Arsenal", "Inter"],
+          ["Arsenal", "Chelsea"],
+          ["Bayern", "Barcelona"],
+        ],
+      ];
 
       function gerarTabela() {
         const tbody = document.getElementById("tabela-jogos");
         tbody.innerHTML = "";
         let jogoIndex = 0;
 
-        jogosPorRodada.forEach((jogos, r) => {
+        rodadas.forEach((rodada, r) => {
           const header = document.createElement("tr");
           header.innerHTML = `<th colspan="3">Rodada ${r + 1}</th>`;
           tbody.appendChild(header);
 
-          jogos.forEach((jogo) => {
+          rodada.forEach(([time1, time2]) => {
             const p1 = localStorage.getItem(`placar_${jogoIndex}_1`) || "";
             const p2 = localStorage.getItem(`placar_${jogoIndex}_2`) || "";
 
             const linha = document.createElement("tr");
             linha.innerHTML = `
-          <td>${r + 1}</td>
-          <td>${jogo.time1} vs ${jogo.time2}</td>
-          <td>
-            <input type="number" id="placar_${jogoIndex}_1" value="${p1}" min="0"> x 
-            <input type="number" id="placar_${jogoIndex}_2" value="${p2}" min="0">
-          </td>
-        `;
+              <td>${r + 1}</td>
+              <td>${time1} vs ${time2}</td>
+              <td>
+                <input type="number" id="placar_${jogoIndex}_1" value="${p1}" min="0"> x 
+                <input type="number" id="placar_${jogoIndex}_2" value="${p2}" min="0">
+              </td>
+            `;
             tbody.appendChild(linha);
             jogoIndex++;
           });
@@ -147,8 +163,8 @@
 
       function salvarPlacares() {
         let jogoIndex = 0;
-        jogosPorRodada.forEach((jogos) => {
-          jogos.forEach(() => {
+        rodadas.forEach((rodada) => {
+          rodada.forEach(() => {
             const p1 = document.getElementById(`placar_${jogoIndex}_1`).value;
             const p2 = document.getElementById(`placar_${jogoIndex}_2`).value;
             localStorage.setItem(`placar_${jogoIndex}_1`, p1);
@@ -168,8 +184,8 @@
         });
 
         let jogoIndex = 0;
-        jogosPorRodada.forEach((jogos) => {
-          jogos.forEach((jogo) => {
+        rodadas.forEach((rodada) => {
+          rodada.forEach(([time1, time2]) => {
             const p1str = localStorage.getItem(`placar_${jogoIndex}_1`);
             const p2str = localStorage.getItem(`placar_${jogoIndex}_2`);
 
@@ -177,8 +193,6 @@
 
             const p1 = parseInt(p1str);
             const p2 = parseInt(p2str);
-            const time1 = jogo.time1;
-            const time2 = jogo.time2;
 
             estatisticas[time1].golsFeitos += p1;
             estatisticas[time1].golsSofridos += p2;
@@ -212,16 +226,15 @@
         listaOrdenada.forEach(([time, dados]) => {
           const linha = document.createElement("tr");
           linha.innerHTML = `
-        <td>${time}</td>
-        <td>${dados.pontos}</td>
-        <td>${dados.golsFeitos}</td>
-        <td>${dados.golsSofridos}</td>
-      `;
+            <td>${time}</td>
+            <td>${dados.pontos}</td>
+            <td>${dados.golsFeitos}</td>
+            <td>${dados.golsSofridos}</td>
+          `;
           tbody.appendChild(linha);
         });
       }
 
-      gerarJogos();
       gerarTabela();
       atualizarClassificacao();
     </script>
